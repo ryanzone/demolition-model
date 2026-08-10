@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['PVC', 'brick', 'cementitious_debris', 'rebar', 'wires']
+
+roboflow:
+  workspace: convr2022
+  project: construction-item
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/convr2022/construction-item/dataset/1
