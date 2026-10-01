@@ -171,3 +171,4 @@ if __name__ == "__main__":
      "yolo": lambda: eval_yolo(a[1], a[2]),
      "claude": lambda: eval_claude(opt("--images"), opt("--labels")),
      "explain": lambda: eval_explain()}[a[0]]()
+
