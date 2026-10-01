@@ -184,6 +184,7 @@ def generate_explanation(material, condition_score, recommendation, claude_note=
             messages=[{"role": "user", "content": prompt}],
         )
         return resp.content[0].text.strip()
+       
     except Exception:
         return (f"{material.capitalize()} scored {condition_score}/100 on visible "
                 f"condition. Recommended pathway: {pathway}. Possible secondary "
