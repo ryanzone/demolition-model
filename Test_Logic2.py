@@ -138,6 +138,7 @@ if __name__ == "__main__":
     import inspect
     for t in tests:
         if "monkeypatch" in inspect.signature(t).parameters:
+            
             print("SKIP (needs pytest fixture, run via `python -m pytest`)", t.__name__)
             continue
         t(); print("PASS", t.__name__)
