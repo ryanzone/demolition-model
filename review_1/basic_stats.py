@@ -1,9 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-train = pd.read_csv("training_image_features_1.csv")
-validation = pd.read_csv("validation_image_features_1.csv")
-test = pd.read_csv("testing_image_features_1.csv")
+train = pd.read_csv("training_image_features.csv")
+validation = pd.read_csv("validation_image_feclsatures.csv")
+test = pd.read_csv("testing_image_features.csv")
 
 df = pd.concat([train, validation, test], ignore_index=True)
 
