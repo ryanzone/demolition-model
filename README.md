@@ -1,0 +1,80 @@
+# ResourceAI - code walkthrough
+
+## 1. What we use, and why
+
+| Layer | Pick | Why (and the alternative) |
+|---|---|---|
+| Front end | **HTML + JavaScript** (this repo) | No build step, runs on any phone, opens the camera with one `<input capture>` tag. *Upgrade path:* React + Vite + Tailwind when you need more screens. *Fastest for a demo:* Streamlit. |
+| Back end | **Python + FastAPI** | Same language as OpenCV / YOLOv8 / scikit-learn, so the model code is called directly. Auto docs at `/docs`. *Alternative:* Flask (simpler, no async/validation). |
+| Image processing | **OpenCV** | Resize, denoise, lighting fix, crack heuristics. |
+| Detection + segmentation | **Ultralytics YOLOv8 / YOLOv8-seg** | One library for both stages. |
+| Condition model | **scikit-learn Random Forest** | Works on small tabular data, gives feature importances (explainable). |
+| Recommendation | **Plain Python rules** | Editable by non-ML teammates, fully explainable to judges. |
+| Storage | JSON files (MVP) -> PostgreSQL | Zero setup now. |
+| Deploy | Docker on Render / AWS / Hugging Face Spaces | Free tiers exist; YOLO runs on CPU for single images. |
+
+## 2. Run it
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload        # open http://localhost:8000  (UI + API together)
+```
+Open the URL on a phone on the same Wi-Fi (`http://<laptop-ip>:8000`) and the camera works.
+API docs: `http://localhost:8000/docs`.
+
+## 3. Pipeline -> file map (your script, step by step)
+
+| Your pipeline step | File | What the code does |
+|---|---|---|
+| Phone image | `frontend/index.html` | `<input capture="environment">` opens the camera; `fetch` POSTs the image to `/api/assess`. |
+| OpenCV preprocess | `pipeline/preprocess.py` | Decode, blur/brightness warnings, resize to 1280 px, edge-preserving denoise, CLAHE lighting fix. |
+| YOLOv8 material | `pipeline/detect.py -> detect_materials` | Returns label, confidence and box for each material. |
+| YOLOv8-seg cracks | `pipeline/detect.py -> segment_damage` | Returns a 0/1 mask of cracked / damaged pixels. |
+| Feature extraction | `pipeline/features.py` | 12 numbers: crack area, crack length, fragmentation, shape, texture, colour. |
+| Random Forest | `pipeline/condition.py` | Predicts a 0-100 visible-condition score + the top 3 influencing features. |
+| Rule-based engine | `pipeline/recommend.py` | Material-specific thresholds -> Reuse / Refurbish / Recycle, alternative uses, reasons. |
+| Recovery report | `pipeline/report.py` | Saves JSON + annotated image (damage in red). UI shows it and offers a download. |
+| Orchestration | `main.py` | Calls all stages in order, times each one, returns the report. |
+
+## 4. Make it real (what must be trained)
+
+The code runs today in **demo mode** (no weights: material = "unknown", cracks found by an OpenCV filter, Random Forest trained on synthetic data). For the real thing:
+
+1. **Materials model** -> `backend/weights/materials.pt`
+   Label photos of your 10 material classes (Roboflow / CVAT), then:
+   `yolo detect train data=materials.yaml model=yolov8n.pt epochs=50 imgsz=640`
+2. **Crack/damage model** -> `backend/weights/cracks-seg.pt`
+   Use a public crack segmentation dataset (e.g. Roboflow Universe "crack-seg"), then:
+   `yolo segment train data=cracks.yaml model=yolov8n-seg.pt epochs=50 imgsz=640`
+3. **Random Forest labels** -> your 10,058-record dataset
+   Run steps 1-2 over your images to produce a CSV with the 12 columns in `features.py` plus `condition_score` (0-100, from your labels), then `python train_rf.py data.csv`.
+   If your dataset's 36 features differ, change `FEATURE_NAMES` in `features.py` and the generator in `condition.py`; nothing else changes.
+4. **Rules** -> edit `RULES` in `recommend.py` to your 10 categories.
+
+## 5. Be upfront about in the demo
+- The condition score is a *visible* condition estimate from a photo, not a strength test. The report carries the "not structural certification" disclaimer.
+- Accuracy depends on the training data you add in step 4; the synthetic Random Forest is only a placeholder.
+
+## 6. Accuracy: what we measured, and what we have not
+
+Run `python evaluate.py ...` (see its docstring). Results from this build:
+
+| Stage | Test | Result | How much to trust it |
+|---|---|---|---|
+| Core logic (rules, features, API) | `python test_logic.py` | 11 / 11 pass: thresholds are monotonic, gypsum is never reused, heavy cracking blocks direct reuse, bad uploads are rejected | Solid: this is deterministic code |
+| Crack stage, OpenCV fallback | synthetic textured surfaces, unseen seed | precision 0.98, recall 0.97, F1 0.97 | Optimistic: synthetic images are cleaner than real walls |
+| Same, faint hairline cracks | `--hard` | F1 0.28 (recall 0.20) | The fallback **misses faint cracks**; this is why YOLOv8-seg is in the pipeline |
+| Random Forest | 5-fold CV | MAE 3.2 points, R^2 0.97 | **Not real accuracy.** The labels were generated by a formula, so this only shows the code works |
+| YOLOv8 material / crack models | not measurable yet | none | Needs your trained weights; use `python evaluate.py yolo materials.yaml cracks.yaml` |
+
+**What you can honestly claim today:** the pipeline works end to end, the decision logic is tested, and the crack stage is validated on synthetic data with its weakness measured.
+**What you cannot claim yet:** any real-world accuracy figure for material recognition or condition scoring. Get those by running on your data:
+
+```bash
+python evaluate.py damage --images photos/ --masks gt_masks/   # real crack precision/recall/F1
+python evaluate.py condition data.csv                           # real MAE / R^2 / grade accuracy
+python evaluate.py pathway data.csv                             # does Reuse/Refurbish/Recycle match experts?
+python evaluate.py yolo materials.yaml cracks.yaml              # mAP for both YOLO models
+```
+Hold out at least 20% of images, split by demolition site, not by photo, so near-duplicates do not leak into the test set. For the Random Forest, have a human expert label 100+ photos with a condition score to get a meaningful baseline.
