@@ -1,5 +1,9 @@
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/1.jpg" --material brick
+
 python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/1.jpg" --material brick --box 636 450 788 576
 
-python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/1.jpg" --material brick
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/103.jpg" --material tile --box 576 146 675 268
 
-python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/1.jpg" --material brick
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/103.jpg" --material tile --box 576 146 675 268
+
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/1.jpg" --material brick --box 636 450 788 576 --show

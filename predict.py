@@ -138,19 +138,36 @@ def load_model():
     return joblib.load(model_file), joblib.load(cols_file)
 
 
-def show_overlay(img, largest, used_box, label):
-    """Display the image with the analysed box and largest contour (matplotlib)."""
+def show_overlay(img, largest, used_box, label, confidence, material, save_path=None, show=True):
+    """Show the photo with the analysed box, plus a zoomed view of the item.
+
+    Left: full photo with the analysed region in green.
+    Right: the cropped item with the largest detected contour in red.
+    Optionally saves the figure to save_path (png/jpg).
+    """
     import matplotlib.pyplot as plt
     xmin, ymin, xmax, ymax = used_box
-    canvas = img.copy()
-    cv2.rectangle(canvas, (xmin, ymin), (xmax, ymax), (0, 255, 0), max(2, img.shape[1] // 300))
+    full = img.copy()
+    cv2.rectangle(full, (xmin, ymin), (xmax, ymax), (0, 255, 0), max(3, img.shape[1] // 250))
+    crop = img[ymin:ymax, xmin:xmax].copy()
     if largest is not None:
-        cv2.drawContours(canvas[ymin:ymax, xmin:xmax], [largest], -1, (0, 0, 255),
-                         max(2, img.shape[1] // 400))
-    plt.imshow(cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB))
-    plt.title(f"Predicted: {label} (green = analysed region, red = largest contour)")
-    plt.axis("off")
-    plt.show()
+        cv2.drawContours(crop, [largest], -1, (0, 0, 255), max(2, crop.shape[1] // 120))
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 6))
+    axes[0].imshow(cv2.cvtColor(full, cv2.COLOR_BGR2RGB))
+    axes[0].set_title("Photo (green = analysed region)")
+    axes[1].imshow(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
+    axes[1].set_title("Item (red = largest contour)")
+    for ax in axes:
+        ax.axis("off")
+    fig.suptitle(f"{material}: predicted {label} ({confidence:.1f}%)", fontsize=14)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150)
+        print(f"Overlay image saved to: {save_path}")
+    if show:
+        plt.show()
+    plt.close(fig)
 
 
 def main():
@@ -162,6 +179,8 @@ def main():
     parser.add_argument("--box", nargs=4, type=int, metavar=("XMIN", "YMIN", "XMAX", "YMAX"),
                         help="object box in pixels; default is the whole image")
     parser.add_argument("--show", action="store_true", help="show the image with an overlay")
+    parser.add_argument("--save", metavar="FILE",
+                        help="save the overlay image to FILE (for example result.png)")
     args = parser.parse_args()
 
     img = read_image(args.image)
@@ -203,8 +222,9 @@ def main():
     print("Note: Features are estimated from the photo; accuracy may be lower "
           "than the reported test results.")
 
-    if args.show:
-        show_overlay(img, largest, used_box, label)
+    if args.show or args.save:
+        show_overlay(img, largest, used_box, label, 100 * proba.get(label, 0.0),
+                     args.material, save_path=args.save, show=args.show)
 
 
 if __name__ == "__main__":

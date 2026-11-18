@@ -1,0 +1,89 @@
+# brick | TRUE: Good | PREDICTED: Good (79.7%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/444.jpg" --material brick --box 770 683 922 823 --show
+
+# brick | TRUE: Fair | PREDICTED: Fair (84.3%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/165.jpg" --material brick --box 897 330 992 608 --show
+
+# brick | TRUE: Fair | PREDICTED: Fair (93.6%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/145.jpg" --material brick --box 975 49 1028 244 --show
+
+# concrete | TRUE: Fair | PREDICTED: Fair (93.3%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/97.jpg" --material concrete --box 738 271 839 375 --show
+
+# concrete | TRUE: Fair | PREDICTED: Fair (92.5%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/138.jpg" --material concrete --box 762 166 884 265 --show
+
+# concrete | TRUE: Poor | PREDICTED: Fair (75.2%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/60.jpg" --material concrete --box 886 805 993 878 --show
+
+# foam | TRUE: Good | PREDICTED: Good (88.8%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/2895.jpg" --material foam --box 640 349 909 776 --show
+
+# foam | TRUE: Fair | PREDICTED: Fair (91.6%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/2878.jpg" --material foam --box 590 565 749 804 --show
+
+# foam | TRUE: Good | PREDICTED: Good (91.6%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/2913.jpg" --material foam --box 1355 637 1571 881 --show
+
+# general_w | TRUE: Fair | PREDICTED: Fair (93.2%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/gen-1060.jpg" --material general_w --box 968 760 1053 836 --show
+
+# general_w | TRUE: Fair | PREDICTED: Poor (67.6%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/gen-738.jpg" --material general_w --box 1360 199 1801 512 --show
+
+# general_w | TRUE: Good | PREDICTED: Good (85.5%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/plastic-1447.jpg" --material general_w --box 562 201 1334 874 --show
+
+# gypsum_board | TRUE: Fair | PREDICTED: Poor (60.1%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/p-2687.jpg" --material gypsum_board --box 697 649 819 815 --show
+
+# gypsum_board | TRUE: Poor | PREDICTED: Fair (83.1%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/p-2636.jpg" --material gypsum_board --box 1333 173 1524 280 --show
+
+# gypsum_board | TRUE: Fair | PREDICTED: Fair (96.0%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/foam-2786.jpg" --material gypsum_board --box 470 694 685 1100 --show
+
+# pipes | TRUE: Poor | PREDICTED: Poor (99.9%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/2968.jpg" --material pipes --box 1054 928 1373 1019 --show
+
+# pipes | TRUE: Fair | PREDICTED: Fair (96.1%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/plastic-1277.jpg" --material pipes --box 827 211 1275 299 --show
+
+# pipes | TRUE: Fair | PREDICTED: Fair (64.5%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/2968.jpg" --material pipes --box 336 198 557 498 --show
+
+# plastic | TRUE: Fair | PREDICTED: Good (68.5%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/other-2295.jpg" --material plastic --box 831 175 1240 431 --show
+
+# plastic | TRUE: Fair | PREDICTED: Fair (93.7%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/validation/2950.jpg" --material plastic --box 1344 185 1756 609 --show
+
+# plastic | TRUE: Poor | PREDICTED: Poor (99.7%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/plastic-1289.jpg" --material plastic --box 844 588 1449 637 --show
+
+# stone | TRUE: Good | PREDICTED: Excellent (99.8%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/testing/2964.jpg" --material stone --box 553 944 662 1032 --show
+
+# stone | TRUE: Fair | PREDICTED: Fair (62.3%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/s-1570.jpg" --material stone --box 764 898 860 999 --show
+
+# stone | TRUE: Fair | PREDICTED: Fair (92.8%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/s-1754.jpg" --material stone --box 1029 522 1155 668 --show
+
+# tile | TRUE: Fair | PREDICTED: Fair (92.3%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/224.jpg" --material tile --box 1167 427 1248 561 --show
+
+# tile | TRUE: Fair | PREDICTED: Fair (96.1%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/91.jpg" --material tile --box 862 355 967 525 --show
+
+# tile | TRUE: Fair | PREDICTED: Fair (94.7%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/26.jpg" --material tile --box 864 376 940 548 --show
+
+# wood | TRUE: Fair | PREDICTED: Fair (96.0%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/w-713.jpg" --material wood --box 759 489 1592 825 --show
+
+# wood | TRUE: Good | PREDICTED: Good (87.2%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/w-523.jpg" --material wood --box 794 247 1191 521 --show
+
+# wood | TRUE: Fair | PREDICTED: Poor (62.0%)
+python predict.py "CODD/Construction and Demolition Waste Object Detection Dataset  (CODD)/training/w-423.jpg" --material wood --box 969 404 1055 720 --show
