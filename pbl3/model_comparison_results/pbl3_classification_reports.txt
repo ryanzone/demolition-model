@@ -1,0 +1,165 @@
+SVM Test Results (30 features, with damage grades)
+--------------------------------------------------
+Accuracy : 0.9992
+Precision (macro): 0.9914
+Recall (macro)   : 0.9994
+F1-score (macro) : 0.9953
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.97      1.00      0.98        32
+        Good       1.00      1.00      1.00       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       1.00      1.00      1.00       238
+
+    accuracy                           1.00      2644
+   macro avg       0.99      1.00      1.00      2644
+weighted avg       1.00      1.00      1.00      2644
+
+============================================================
+
+CART Test Results (30 features, with damage grades)
+---------------------------------------------------
+Accuracy : 0.9970
+Precision (macro): 0.9883
+Recall (macro)   : 0.9821
+F1-score (macro) : 0.9851
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.97      0.94      0.95        32
+        Good       0.99      1.00      1.00       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       0.99      1.00      0.99       238
+
+    accuracy                           1.00      2644
+   macro avg       0.99      0.98      0.99      2644
+weighted avg       1.00      1.00      1.00      2644
+
+============================================================
+
+GAM Test Results (30 features, with damage grades)
+--------------------------------------------------
+Accuracy : 0.9962
+Precision (macro): 0.9676
+Recall (macro)   : 0.9898
+F1-score (macro) : 0.9782
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.89      0.97      0.93        32
+        Good       0.99      0.99      0.99       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       0.99      1.00      1.00       238
+
+    accuracy                           1.00      2644
+   macro avg       0.97      0.99      0.98      2644
+weighted avg       1.00      1.00      1.00      2644
+
+============================================================
+
+Random Forest Test Results (30 features, with damage grades)
+------------------------------------------------------------
+Accuracy : 0.9879
+Precision (macro): 0.9915
+Recall (macro)   : 0.9568
+F1-score (macro) : 0.9733
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       1.00      0.91      0.95        32
+        Good       0.98      0.99      0.99       586
+        Fair       0.99      0.99      0.99      1788
+        Poor       1.00      0.93      0.96       238
+
+    accuracy                           0.99      2644
+   macro avg       0.99      0.96      0.97      2644
+weighted avg       0.99      0.99      0.99      2644
+
+============================================================
+
+AdaBoost Test Results (30 features, with damage grades)
+-------------------------------------------------------
+Accuracy : 0.9989
+Precision (macro): 0.9990
+Recall (macro)   : 0.9833
+F1-score (macro) : 0.9909
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       1.00      0.94      0.97        32
+        Good       1.00      1.00      1.00       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       1.00      1.00      1.00       238
+
+    accuracy                           1.00      2644
+   macro avg       1.00      0.98      0.99      2644
+weighted avg       1.00      1.00      1.00      2644
+
+============================================================
+
+Mixture of Experts Test Results (30 features, with damage grades)
+-----------------------------------------------------------------
+Accuracy : 0.9508
+Precision (macro): 0.9423
+Recall (macro)   : 0.8928
+F1-score (macro) : 0.9126
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.96      0.72      0.82        32
+        Good       0.87      0.96      0.91       586
+        Fair       0.98      0.95      0.97      1788
+        Poor       0.96      0.94      0.95       238
+
+    accuracy                           0.95      2644
+   macro avg       0.94      0.89      0.91      2644
+weighted avg       0.95      0.95      0.95      2644
+
+============================================================
+
+Voting Ensemble Test Results (30 features, with damage grades)
+--------------------------------------------------------------
+Accuracy : 0.9989
+Precision (macro): 0.9990
+Recall (macro)   : 0.9833
+F1-score (macro) : 0.9909
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       1.00      0.94      0.97        32
+        Good       1.00      1.00      1.00       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       1.00      1.00      1.00       238
+
+    accuracy                           1.00      2644
+   macro avg       1.00      0.98      0.99      2644
+weighted avg       1.00      1.00      1.00      2644
+
+============================================================
+
+Stacking Test Results (30 features, with damage grades)
+-------------------------------------------------------
+Accuracy : 0.9992
+Precision (macro): 0.9920
+Recall (macro)   : 0.9994
+F1-score (macro) : 0.9957
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.97      1.00      0.98        32
+        Good       1.00      1.00      1.00       586
+        Fair       1.00      1.00      1.00      1788
+        Poor       1.00      1.00      1.00       238
+
+    accuracy                           1.00      2644
+   macro avg       0.99      1.00      1.00      2644
+weighted avg       1.00      1.00      1.00      2644

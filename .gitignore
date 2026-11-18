@@ -1,0 +1,12 @@
+# Large trained models (GitHub rejects files over 100 MB, warns over 50 MB).
+# Regenerate them by running the notebooks / scripts in pbl3.
+pbl3/photo_models/
+pbl3/final_models/
+pbl3/saved_models/codd_stacking_top5.joblib
+
+# Python / editor clutter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+tempCodeRunnerFile.py
+pbl3/photo_run.log

@@ -1,0 +1,123 @@
+SVM Test Results (photo input, 24 features)
+-------------------------------------------
+Accuracy : 0.8404
+Precision (macro): 0.6702
+Recall (macro)   : 0.7171
+F1-score (macro) : 0.6904
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.31      0.38      0.34        32
+        Good       0.70      0.85      0.76       586
+        Fair       0.93      0.85      0.89      1788
+        Poor       0.75      0.79      0.77       238
+
+    accuracy                           0.84      2644
+   macro avg       0.67      0.72      0.69      2644
+weighted avg       0.85      0.84      0.84      2644
+
+============================================================
+
+CART Test Results (photo input, 24 features)
+--------------------------------------------
+Accuracy : 0.8222
+Precision (macro): 0.6625
+Recall (macro)   : 0.7547
+F1-score (macro) : 0.6941
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.32      0.66      0.43        32
+        Good       0.71      0.74      0.73       586
+        Fair       0.90      0.86      0.88      1788
+        Poor       0.72      0.76      0.74       238
+
+    accuracy                           0.82      2644
+   macro avg       0.66      0.75      0.69      2644
+weighted avg       0.83      0.82      0.83      2644
+
+============================================================
+
+GAM Test Results (photo input, 24 features)
+-------------------------------------------
+Accuracy : 0.8491
+Precision (macro): 0.6941
+Recall (macro)   : 0.8813
+F1-score (macro) : 0.7587
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.45      0.88      0.60        32
+        Good       0.75      0.88      0.81       586
+        Fair       0.97      0.82      0.89      1788
+        Poor       0.60      0.94      0.73       238
+
+    accuracy                           0.85      2644
+   macro avg       0.69      0.88      0.76      2644
+weighted avg       0.88      0.85      0.86      2644
+
+============================================================
+
+Random Forest Test Results (photo input, 24 features)
+-----------------------------------------------------
+Accuracy : 0.8529
+Precision (macro): 0.7682
+Recall (macro)   : 0.6462
+F1-score (macro) : 0.6882
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.53      0.25      0.34        32
+        Good       0.74      0.78      0.76       586
+        Fair       0.89      0.92      0.90      1788
+        Poor       0.91      0.64      0.75       238
+
+    accuracy                           0.85      2644
+   macro avg       0.77      0.65      0.69      2644
+weighted avg       0.85      0.85      0.85      2644
+
+============================================================
+
+Mixture of Experts Test Results (photo input, 24 features)
+----------------------------------------------------------
+Accuracy : 0.8011
+Precision (macro): 0.6743
+Recall (macro)   : 0.6747
+F1-score (macro) : 0.6703
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.48      0.38      0.42        32
+        Good       0.65      0.81      0.72       586
+        Fair       0.89      0.82      0.86      1788
+        Poor       0.68      0.70      0.69       238
+
+    accuracy                           0.80      2644
+   macro avg       0.67      0.67      0.67      2644
+weighted avg       0.81      0.80      0.80      2644
+
+============================================================
+
+Stacking Test Results (photo input, 24 features)
+------------------------------------------------
+Accuracy : 0.8601
+Precision (macro): 0.6914
+Recall (macro)   : 0.8955
+F1-score (macro) : 0.7555
+
+Classification Report:
+              precision    recall  f1-score   support
+
+   Excellent       0.38      0.94      0.54        32
+        Good       0.76      0.86      0.81       586
+        Fair       0.97      0.85      0.91      1788
+        Poor       0.66      0.94      0.77       238
+
+    accuracy                           0.86      2644
+   macro avg       0.69      0.90      0.76      2644
+weighted avg       0.89      0.86      0.87      2644
