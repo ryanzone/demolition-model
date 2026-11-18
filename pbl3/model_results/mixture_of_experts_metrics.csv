@@ -1,0 +1,3 @@
+Model,Split,Accuracy,Macro F1
+Mixture of Experts,Validation,0.9786839666357738,0.980131494156514
+Mixture of Experts,Test,0.9466501240694789,0.9324066085002459
