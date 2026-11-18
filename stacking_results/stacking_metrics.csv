@@ -1,0 +1,3 @@
+Model,Split,Accuracy,Macro F1
+Stacking Classifier,Validation,0.9996910719802286,0.9967403300736634
+Stacking Classifier,Test,0.9996898263027295,0.9968132488023371

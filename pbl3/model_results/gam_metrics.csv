@@ -1,3 +1,0 @@
-Model,Split,Accuracy,Macro Precision,Macro Recall,Macro F1,Weighted F1
-GAM,Validation,1.0,1.0,1.0,1.0,1.0
-GAM,Test,1.0,1.0,1.0,1.0,1.0
