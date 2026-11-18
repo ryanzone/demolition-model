@@ -1,363 +1,161 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 7,
-   "id": "cb889265",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "\n",
-    "import os\n",
-    "import joblib\n",
-    "import pandas as pd\n",
-    "import matplotlib.pyplot as plt\n",
-    "import seaborn as sns\n",
-    "\n",
-    "from sklearn.base import clone\n",
-    "from sklearn.ensemble import StackingClassifier\n",
-    "from sklearn.linear_model import LogisticRegression\n",
-    "from sklearn.metrics import (\n",
-    "    accuracy_score,\n",
-    "    precision_score,\n",
-    "    recall_score,\n",
-    "    f1_score,\n",
-    "    confusion_matrix,\n",
-    ")\n",
-    "\n",
-    "# --------------------------------------------------\n",
-    "# PATHS\n",
-    "# --------------------------------------------------\n",
-    "BASE_DIR = os.getcwd()\n",
-    "\n",
-    "MODEL_DIR = os.path.join(BASE_DIR, \"saved_models\")\n",
-    "\n",
-    "TRAIN_FILE = os.path.join(\n",
-    "    BASE_DIR, \"../training_image_features.csv\"\n",
-    ")\n",
-    "VALIDATION_FILE = os.path.join(\n",
-    "    BASE_DIR, \"../validation_image_features.csv\"\n",
-    ")\n",
-    "TEST_FILE = os.path.join(\n",
-    "    BASE_DIR, \"../testing_image_features.csv\"\n",
-    ")\n",
-    "\n",
-    "RESULTS_DIR = os.path.join(BASE_DIR, \"stacking_results\")\n",
-    "\n",
-    "os.makedirs(RESULTS_DIR, exist_ok=True)\n",
-    "\n",
-    "TARGET = \"Condition_Class\"\n",
-    "\n",
-    "RANDOM_STATE = 42\n",
-    "\n",
-    "EXCLUDE_COLUMNS = [\n",
-    "    \"Condition_Class\",\n",
-    "    \"Condition_Score\",\n",
-    "    \"Damage_Score\",\n",
-    "    \"Structural_Integrity\",\n",
-    "    \"Recovery_Pathway\",\n",
-    "    \"Reconditioning_Required\",\n",
-    "    \"Recovery_Potential\",\n",
-    "    \"Alternative_Use_Category\",\n",
-    "    \"Alternative_Use_Suitability\",\n",
-    "    \"Sample_ID\",\n",
-    "    \"Image_ID\",\n",
-    "]\n",
-    "\n",
-    "\n",
-    "\n",
-    "\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 8,
-   "id": "ac71d1d4",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "def load_split(path):\n",
-    "\n",
-    "    if not os.path.exists(path):\n",
-    "        raise FileNotFoundError(f\"Dataset not found: {path}\")\n",
-    "\n",
-    "    df = pd.read_csv(path)\n",
-    "\n",
-    "    if TARGET not in df.columns:\n",
-    "        raise ValueError(f\"{TARGET} missing from {path}\")\n",
-    "\n",
-    "    X = df.drop(\n",
-    "        columns=[\n",
-    "            col for col in EXCLUDE_COLUMNS\n",
-    "            if col in df.columns\n",
-    "        ]\n",
-    "    )\n",
-    "\n",
-    "    y = df[TARGET].astype(str)\n",
-    "\n",
-    "    return X, y\n",
-    "\n",
-    "\n",
-    "# --------------------------------------------------\n",
-    "# LOAD TOP 5 BASE MODELS\n",
-    "# --------------------------------------------------\n",
-    "\n",
-    "MODEL_FILES = {\n",
-    "    \"SVM\": \"codd_svm_pipeline.joblib\",\n",
-    "    \"CART\": \"codd_cart_pipeline.joblib\",\n",
-    "    \"GAM\": \"codd_gam_pipeline.joblib\",\n",
-    "    \"Random Forest\": \"codd_random_forest.joblib\",\n",
-    "    \"MoE\": \"codd_moe_pipeline.joblib\",\n",
-    "}\n",
-    "\n",
-    "\n",
-    "def load_base_models():\n",
-    "\n",
-    "    estimators = []\n",
-    "\n",
-    "    for model_name, filename in MODEL_FILES.items():\n",
-    "\n",
-    "        model_path = os.path.join(MODEL_DIR, filename)\n",
-    "\n",
-    "        if not os.path.exists(model_path):\n",
-    "            raise FileNotFoundError(\n",
-    "                f\"Missing {model_name} model: {model_path}\"\n",
-    "            )\n",
-    "\n",
-    "        model = joblib.load(model_path)\n",
-    "\n",
-    "        # Check sklearn estimator compatibility\n",
-    "        try:\n",
-    "            cloned_model = clone(model)\n",
-    "        except Exception as exc:\n",
-    "            raise TypeError(\n",
-    "                f\"{model_name} cannot be cloned as a \"\n",
-    "                f\"scikit-learn estimator: {exc}\"\n",
-    "            )\n",
-    "\n",
-    "        estimators.append(\n",
-    "            (model_name.lower().replace(\" \", \"_\"), cloned_model)\n",
-    "        )\n",
-    "\n",
-    "        print(f\"Loaded {model_name}\")\n",
-    "\n",
-    "    return estimators"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 9,
-   "id": "7d128489",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# --------------------------------------------------\n",
-    "# METRICS\n",
-    "# --------------------------------------------------\n",
-    "\n",
-    "def evaluate_model(model, X, y, split_name):\n",
-    "\n",
-    "    predictions = model.predict(X)\n",
-    "\n",
-    "    metrics = {\n",
-    "        \"Model\": \"Stacking Classifier (Top 5)\",\n",
-    "        \"Split\": split_name,\n",
-    "        \"Accuracy\": accuracy_score(y, predictions),\n",
-    "        \"Macro Precision\": precision_score(\n",
-    "            y, predictions,\n",
-    "            average=\"macro\",\n",
-    "            zero_division=0\n",
-    "        ),\n",
-    "        \"Macro Recall\": recall_score(\n",
-    "            y, predictions,\n",
-    "            average=\"macro\",\n",
-    "            zero_division=0\n",
-    "        ),\n",
-    "        \"Macro F1\": f1_score(\n",
-    "            y, predictions,\n",
-    "            average=\"macro\",\n",
-    "            zero_division=0\n",
-    "        ),\n",
-    "        \"Weighted F1\": f1_score(\n",
-    "            y, predictions,\n",
-    "            average=\"weighted\",\n",
-    "            zero_division=0\n",
-    "        ),\n",
-    "    }\n",
-    "\n",
-    "    return metrics, predictions"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 20,
-   "id": "663b2798",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Defaulting to user installation because normal site-packages is not writeable\n",
-      "Collecting scikit-learn==1.9.0\n",
-      "  Using cached scikit_learn-1.9.0-cp312-cp312-win_amd64.whl.metadata (11 kB)\n",
-      "Requirement already satisfied: numpy>=1.24.1 in c:\\programdata\\anaconda3\\lib\\site-packages (from scikit-learn==1.9.0) (1.26.4)\n",
-      "Requirement already satisfied: scipy>=1.10.0 in c:\\programdata\\anaconda3\\lib\\site-packages (from scikit-learn==1.9.0) (1.13.1)\n",
-      "Requirement already satisfied: joblib>=1.4.0 in c:\\programdata\\anaconda3\\lib\\site-packages (from scikit-learn==1.9.0) (1.4.2)\n",
-      "Requirement already satisfied: narwhals>=2.0.1 in c:\\users\\ryan john\\appdata\\roaming\\python\\python312\\site-packages (from scikit-learn==1.9.0) (2.29.0)\n",
-      "Requirement already satisfied: threadpoolctl>=3.5.0 in c:\\programdata\\anaconda3\\lib\\site-packages (from scikit-learn==1.9.0) (3.5.0)\n",
-      "Using cached scikit_learn-1.9.0-cp312-cp312-win_amd64.whl (8.2 MB)\n",
-      "Installing collected packages: scikit-learn\n",
-      "  Attempting uninstall: scikit-learn\n",
-      "    Found existing installation: scikit-learn 1.9.1\n",
-      "    Uninstalling scikit-learn-1.9.1:\n",
-      "      Successfully uninstalled scikit-learn-1.9.1\n",
-      "Successfully installed scikit-learn-1.9.0\n",
-      "Note: you may need to restart the kernel to use updated packages.\n"
-     ]
-    }
-   ],
-   "source": [
-    "%pip install scikit-learn==1.9.0\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 18,
-   "id": "8a028cef",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import os\n",
-    "import joblib\n",
-    "from sklearn.base import clone\n",
-    "from sklearn.compose import ColumnTransformer\n",
-    "\n",
-    "def fix_sklearn_compatibility(obj, visited=None):\n",
-    "    if visited is None:\n",
-    "        visited = set()\n",
-    "\n",
-    "    if id(obj) in visited:\n",
-    "        return\n",
-    "\n",
-    "    visited.add(id(obj))\n",
-    "\n",
-    "    if isinstance(obj, ColumnTransformer):\n",
-    "        obj.force_int_remainder_cols = False\n",
-    "\n",
-    "    if isinstance(obj, dict):\n",
-    "        for value in obj.values():\n",
-    "            fix_sklearn_compatibility(value, visited)\n",
-    "\n",
-    "    elif isinstance(obj, (list, tuple, set)):\n",
-    "        for value in obj:\n",
-    "            fix_sklearn_compatibility(value, visited)\n",
-    "\n",
-    "    elif hasattr(obj, \"__dict__\"):\n",
-    "        for value in vars(obj).values():\n",
-    "            fix_sklearn_compatibility(value, visited)\n",
-    "\n",
-    "\n",
-    "def load_base_models():\n",
-    "    estimators = []\n",
-    "\n",
-    "    for model_name, filename in MODEL_FILES.items():\n",
-    "        model_path = os.path.join(MODEL_DIR, filename)\n",
-    "\n",
-    "        if not os.path.exists(model_path):\n",
-    "            raise FileNotFoundError(model_path)\n",
-    "\n",
-    "        model = joblib.load(model_path)\n",
-    "\n",
-    "        fix_sklearn_compatibility(model)\n",
-    "\n",
-    "        clone(model)\n",
-    "\n",
-    "        estimators.append((\n",
-    "            model_name.lower().replace(\" \", \"_\"),\n",
-    "            model\n",
-    "        ))\n",
-    "\n",
-    "        print(f\"Loaded {model_name} successfully\")\n",
-    "\n",
-    "    return estimators"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 19,
-   "id": "681abda6",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Loaded SVM successfully\n",
-      "Loaded CART successfully\n",
-      "Loaded GAM successfully\n",
-      "Loaded Random Forest successfully\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "c:\\ProgramData\\anaconda3\\Lib\\site-packages\\sklearn\\base.py:376: InconsistentVersionWarning: Trying to unpickle estimator DecisionTreeClassifier from version 1.9.0 when using version 1.5.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:\n",
-      "https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations\n",
-      "  warnings.warn(\n",
-      "c:\\ProgramData\\anaconda3\\Lib\\site-packages\\sklearn\\base.py:376: InconsistentVersionWarning: Trying to unpickle estimator RandomForestClassifier from version 1.9.0 when using version 1.5.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:\n",
-      "https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations\n",
-      "  warnings.warn(\n"
-     ]
-    },
-    {
-     "ename": "AttributeError",
-     "evalue": "Can't get attribute 'MixtureOfExperts' on <module '__main__'>",
-     "output_type": "error",
-     "traceback": [
-      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
-      "\u001b[1;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
-      "Cell \u001b[1;32mIn[19], line 1\u001b[0m\n\u001b[1;32m----> 1\u001b[0m estimators \u001b[38;5;241m=\u001b[39m load_base_models()\n\u001b[0;32m      3\u001b[0m \u001b[38;5;28mprint\u001b[39m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;130;01m\\n\u001b[39;00m\u001b[38;5;124mLoaded models:\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[0;32m      4\u001b[0m \u001b[38;5;28;01mfor\u001b[39;00m name, model \u001b[38;5;129;01min\u001b[39;00m estimators:\n",
-      "Cell \u001b[1;32mIn[18], line 40\u001b[0m, in \u001b[0;36mload_base_models\u001b[1;34m()\u001b[0m\n\u001b[0;32m     37\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m os\u001b[38;5;241m.\u001b[39mpath\u001b[38;5;241m.\u001b[39mexists(model_path):\n\u001b[0;32m     38\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mFileNotFoundError\u001b[39;00m(model_path)\n\u001b[1;32m---> 40\u001b[0m model \u001b[38;5;241m=\u001b[39m joblib\u001b[38;5;241m.\u001b[39mload(model_path)\n\u001b[0;32m     42\u001b[0m fix_sklearn_compatibility(model)\n\u001b[0;32m     44\u001b[0m clone(model)\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\site-packages\\joblib\\numpy_pickle.py:658\u001b[0m, in \u001b[0;36mload\u001b[1;34m(filename, mmap_mode)\u001b[0m\n\u001b[0;32m    652\u001b[0m             \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(fobj, \u001b[38;5;28mstr\u001b[39m):\n\u001b[0;32m    653\u001b[0m                 \u001b[38;5;66;03m# if the returned file object is a string, this means we\u001b[39;00m\n\u001b[0;32m    654\u001b[0m                 \u001b[38;5;66;03m# try to load a pickle file generated with an version of\u001b[39;00m\n\u001b[0;32m    655\u001b[0m                 \u001b[38;5;66;03m# Joblib so we load it with joblib compatibility function.\u001b[39;00m\n\u001b[0;32m    656\u001b[0m                 \u001b[38;5;28;01mreturn\u001b[39;00m load_compatibility(fobj)\n\u001b[1;32m--> 658\u001b[0m             obj \u001b[38;5;241m=\u001b[39m _unpickle(fobj, filename, mmap_mode)\n\u001b[0;32m    659\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m obj\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\site-packages\\joblib\\numpy_pickle.py:577\u001b[0m, in \u001b[0;36m_unpickle\u001b[1;34m(fobj, filename, mmap_mode)\u001b[0m\n\u001b[0;32m    575\u001b[0m obj \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m\n\u001b[0;32m    576\u001b[0m \u001b[38;5;28;01mtry\u001b[39;00m:\n\u001b[1;32m--> 577\u001b[0m     obj \u001b[38;5;241m=\u001b[39m unpickler\u001b[38;5;241m.\u001b[39mload()\n\u001b[0;32m    578\u001b[0m     \u001b[38;5;28;01mif\u001b[39;00m unpickler\u001b[38;5;241m.\u001b[39mcompat_mode:\n\u001b[0;32m    579\u001b[0m         warnings\u001b[38;5;241m.\u001b[39mwarn(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mThe file \u001b[39m\u001b[38;5;124m'\u001b[39m\u001b[38;5;132;01m%s\u001b[39;00m\u001b[38;5;124m'\u001b[39m\u001b[38;5;124m has been generated with a \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m    580\u001b[0m                       \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mjoblib version less than 0.10. \u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m    581\u001b[0m                       \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mPlease regenerate this pickle file.\u001b[39m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m    582\u001b[0m                       \u001b[38;5;241m%\u001b[39m filename,\n\u001b[0;32m    583\u001b[0m                       \u001b[38;5;167;01mDeprecationWarning\u001b[39;00m, stacklevel\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m3\u001b[39m)\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\pickle.py:1255\u001b[0m, in \u001b[0;36m_Unpickler.load\u001b[1;34m(self)\u001b[0m\n\u001b[0;32m   1253\u001b[0m             \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mEOFError\u001b[39;00m\n\u001b[0;32m   1254\u001b[0m         \u001b[38;5;28;01massert\u001b[39;00m \u001b[38;5;28misinstance\u001b[39m(key, bytes_types)\n\u001b[1;32m-> 1255\u001b[0m         dispatch[key[\u001b[38;5;241m0\u001b[39m]](\u001b[38;5;28mself\u001b[39m)\n\u001b[0;32m   1256\u001b[0m \u001b[38;5;28;01mexcept\u001b[39;00m _Stop \u001b[38;5;28;01mas\u001b[39;00m stopinst:\n\u001b[0;32m   1257\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m stopinst\u001b[38;5;241m.\u001b[39mvalue\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\pickle.py:1580\u001b[0m, in \u001b[0;36m_Unpickler.load_stack_global\u001b[1;34m(self)\u001b[0m\n\u001b[0;32m   1578\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mtype\u001b[39m(name) \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m \u001b[38;5;28mstr\u001b[39m \u001b[38;5;129;01mor\u001b[39;00m \u001b[38;5;28mtype\u001b[39m(module) \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m \u001b[38;5;28mstr\u001b[39m:\n\u001b[0;32m   1579\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m UnpicklingError(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mSTACK_GLOBAL requires str\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[1;32m-> 1580\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mappend(\u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mfind_class(module, name))\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\pickle.py:1623\u001b[0m, in \u001b[0;36m_Unpickler.find_class\u001b[1;34m(self, module, name)\u001b[0m\n\u001b[0;32m   1621\u001b[0m \u001b[38;5;28m__import__\u001b[39m(module, level\u001b[38;5;241m=\u001b[39m\u001b[38;5;241m0\u001b[39m)\n\u001b[0;32m   1622\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mproto \u001b[38;5;241m>\u001b[39m\u001b[38;5;241m=\u001b[39m \u001b[38;5;241m4\u001b[39m:\n\u001b[1;32m-> 1623\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m _getattribute(sys\u001b[38;5;241m.\u001b[39mmodules[module], name)[\u001b[38;5;241m0\u001b[39m]\n\u001b[0;32m   1624\u001b[0m \u001b[38;5;28;01melse\u001b[39;00m:\n\u001b[0;32m   1625\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28mgetattr\u001b[39m(sys\u001b[38;5;241m.\u001b[39mmodules[module], name)\n",
-      "File \u001b[1;32mc:\\ProgramData\\anaconda3\\Lib\\pickle.py:326\u001b[0m, in \u001b[0;36m_getattribute\u001b[1;34m(obj, name)\u001b[0m\n\u001b[0;32m    324\u001b[0m         obj \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mgetattr\u001b[39m(obj, subpath)\n\u001b[0;32m    325\u001b[0m     \u001b[38;5;28;01mexcept\u001b[39;00m \u001b[38;5;167;01mAttributeError\u001b[39;00m:\n\u001b[1;32m--> 326\u001b[0m         \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mAttributeError\u001b[39;00m(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mCan\u001b[39m\u001b[38;5;124m'\u001b[39m\u001b[38;5;124mt get attribute \u001b[39m\u001b[38;5;132;01m{!r}\u001b[39;00m\u001b[38;5;124m on \u001b[39m\u001b[38;5;132;01m{!r}\u001b[39;00m\u001b[38;5;124m\"\u001b[39m\n\u001b[0;32m    327\u001b[0m                              \u001b[38;5;241m.\u001b[39mformat(name, top)) \u001b[38;5;28;01mfrom\u001b[39;00m \u001b[38;5;28;01mNone\u001b[39;00m\n\u001b[0;32m    328\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m obj, parent\n",
-      "\u001b[1;31mAttributeError\u001b[0m: Can't get attribute 'MixtureOfExperts' on <module '__main__'>"
-     ]
-    }
-   ],
-   "source": [
-    "estimators = load_base_models()\n",
-    "\n",
-    "print(\"\\nLoaded models:\")\n",
-    "for name, model in estimators:\n",
-    "    print(name, \"->\", type(model).__name__)"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "base",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.7"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
+# ============================================================
+# CODD PBL3 - STACKING CLASSIFIER
+# SVM + CART + GAM + Random Forest + MoE
+#
+# Uses the shared grouped splits and the same 30 features as every
+# other PBL3 model (see codd_common.py). The base-model hyperparameters
+# are taken from the saved, validation-tuned pipelines. Base models are
+# re-fit inside the stack; the meta-learner is trained on out-of-fold
+# predictions from folds grouped by Image_ID, so near-duplicate crops of
+# one image never sit on both sides of a fold.
+# ============================================================
+
+import warnings
+from pathlib import Path
+
+import joblib
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.base import clone
+from sklearn.ensemble import StackingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score, classification_report, confusion_matrix,
+    f1_score, precision_score, recall_score,
+)
+from sklearn.model_selection import StratifiedGroupKFold
+
+import codd_models  # noqa: F401  (needed so saved MixtureOfExperts files unpickle)
+from codd_common import (
+    CLASS_NAMES, FEATURE_COLUMNS, RANDOM_STATE, assert_feature_set,
+    load_grouped_splits,
+)
+
+warnings.filterwarnings("ignore", category=UserWarning)
+
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "saved_models"
+RESULTS_DIR = BASE_DIR / "stacking_results"
+RESULTS_DIR.mkdir(exist_ok=True)
+MODEL_DIR.mkdir(exist_ok=True)
+
+MODEL_FILES = {
+    "svm": "codd_svm_pipeline.joblib",
+    "cart": "codd_cart_pipeline.joblib",
+    "gam": "codd_gam_pipeline.joblib",
+    "random_forest": "codd_random_forest.joblib",
+    "moe": "codd_moe_pipeline.joblib",
 }
+
+
+def summarize(y_true, y_pred, model, split):
+    return {
+        "Model": model,
+        "Split": split,
+        "Accuracy": accuracy_score(y_true, y_pred),
+        "Macro Precision": precision_score(y_true, y_pred, average="macro", zero_division=0),
+        "Macro Recall": recall_score(y_true, y_pred, average="macro", zero_division=0),
+        "Macro F1": f1_score(y_true, y_pred, average="macro", zero_division=0),
+        "Weighted F1": f1_score(y_true, y_pred, average="weighted", zero_division=0),
+    }
+
+
+def load_base_models():
+    models = {}
+    for name, filename in MODEL_FILES.items():
+        path = MODEL_DIR / filename
+        if not path.exists():
+            raise FileNotFoundError(f"Missing base model: {path}. Run its notebook first.")
+        model = joblib.load(path)
+        # Every base model must have been trained on exactly the shared features.
+        cols = getattr(model, "feature_names_in_", None)
+        if cols is not None:
+            assert_feature_set(cols)
+        models[name] = model
+        print(f"Loaded {name}: {type(model).__name__}")
+    return models
+
+
+def build_stack(base_models):
+    """Unfitted stack: same hyperparameters as the saved base models."""
+    cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    return cv, StackingClassifier(
+        estimators=[(name, clone(model)) for name, model in base_models.items()],
+        final_estimator=LogisticRegression(
+            max_iter=3000, class_weight="balanced", random_state=RANDOM_STATE),
+        stack_method="predict_proba",
+        passthrough=False,
+        n_jobs=1,
+    )
+
+
+def fit_stack(base_models, X, y, groups):
+    cv, stack = build_stack(base_models)
+    # Precomputed image-grouped folds for the out-of-fold meta features.
+    stack.set_params(cv=list(cv.split(X, y, groups=groups)))
+    return stack.fit(X, y)
+
+
+def main():
+    data = load_grouped_splits()
+    X_train, X_val, X_test = data.X_train, data.X_val, data.X_test
+    y_train, y_val, y_test = data.y_train, data.y_val, data.y_test
+    for X in (X_train, X_val, X_test):
+        assert_feature_set(X.columns)
+
+    base_models = load_base_models()
+
+    # ---- Validation: stack fit on train only
+    print("\nTraining stacking classifier on the training split...")
+    stack_val = fit_stack(base_models, X_train, y_train, data.groups_train)
+    val_pred = stack_val.predict(X_val)
+    val_row = summarize(y_val, val_pred, "Stacking Classifier", "Validation")
+    print("\n========== VALIDATION ==========")
+    print(classification_report(y_val, val_pred, labels=CLASS_NAMES, zero_division=0))
+
+    # ---- Final: refit on train + validation, evaluate once on test
+    X_tv = pd.concat([X_train, X_val], ignore_index=True)
+    y_tv = pd.concat([y_train, y_val], ignore_index=True)
+    g_tv = pd.concat([data.groups_train, data.groups_val], ignore_index=True)
+
+    print("Refitting on train + validation...")
+    final_stack = fit_stack(base_models, X_tv, y_tv, g_tv)
+    test_pred = final_stack.predict(X_test)
+    test_row = summarize(y_test, test_pred, "Stacking Classifier", "Test")
+    print("\n========== TEST ==========")
+    report = classification_report(y_test, test_pred, labels=CLASS_NAMES, zero_division=0)
+    print(report)
+
+    metrics = pd.DataFrame([val_row, test_row])
+    metrics.to_csv(RESULTS_DIR / "stacking_metrics.csv", index=False)
+    (RESULTS_DIR / "stacking_test_classification_report.txt").write_text(report)
+
+    joblib.dump(final_stack, MODEL_DIR / "codd_stacking_top5.joblib")
+
+    # Meta-learner weights show how much each base model contributes.
+    meta = final_stack.final_estimator_
+    names = [f"{n}:{c}" for n in base_models for c in final_stack.classes_]
+    pd.DataFrame(meta.coef_.T, index=names, columns=meta.classes_).to_csv(
+        RESULTS_DIR / "stacking_meta_coefficients.csv")
+
+    cm = confusion_matrix(y_test, test_pred, labels=CLASS_NAMES)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=CLASS_NAMES, yticklabels=CLASS_NAMES)
+    plt.title("Stacking Classifier - Test Confusion Matrix")
+    plt.xlabel("Predicted Class")
+    plt.ylabel("Actual Class")
+    plt.tight_layout()
+    plt.savefig(RESULTS_DIR / "stacking_confusion_matrix.png", dpi=200)
+    plt.close()
+
+    print(metrics.to_string(index=False))
+    print(f"\nSaved model and results under {BASE_DIR}")
+
+
+if __name__ == "__main__":
+    main()

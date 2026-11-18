@@ -1,0 +1,6 @@
+,0
+CART,{'max_depth': 20}
+SVM,"{'C': 100, 'gamma': 'scale'}"
+GAM,"{'n_knots': 5, 'C': 10.0}"
+Random Forest,"{'max_depth': None, 'min_samples_leaf': 2}"
+MoE,{}

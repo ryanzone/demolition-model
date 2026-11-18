@@ -1,0 +1,28 @@
+Grouped splits: train (11465, 30) val (2410, 30) test (2644, 30)
+Image_ID overlap (must all be 0): {'train-val': 0, 'train-test': 0, 'val-test': 0}
+Features: 30 (24 numeric, 6 categorical)
+Photo-only features: 24 (20 numeric, 4 categorical)
+CART           best={'max_depth': 20} val F1=0.6693 test F1=0.6941 (2s)
+SVM            best={'C': 100, 'gamma': 'scale'} val F1=0.6818 test F1=0.6904 (169s)
+GAM            best={'n_knots': 5, 'C': 10.0} val F1=0.7420 test F1=0.7587 (4s)
+Random Forest  best={'max_depth': None, 'min_samples_leaf': 2} val F1=0.7139 test F1=0.6882 (12s)
+MoE            best={} val F1=0.6463 test F1=0.6703 (7s)
+Stacking       val F1=0.7317 test F1=0.7555 (251s)
+
+WITH vs WITHOUT manual damage grades (test)
+        Model  Accuracy (30 features)  Macro F1 (30 features)  Accuracy (photo-only, 24)  Macro F1 (photo-only, 24)
+          SVM                  0.9992                  0.9953                     0.8404                     0.6904
+         CART                  0.9970                  0.9851                     0.8222                     0.6941
+          GAM                  0.9962                  0.9782                     0.8491                     0.7587
+Random Forest                  0.9879                  0.9733                     0.8529                     0.6882
+          MoE                  0.9508                  0.9126                     0.8011                     0.6703
+     Stacking                  0.9992                  0.9957                     0.8601                     0.7555
+
+PHOTO-ONLY TEST RESULTS
+        Model  Accuracy  Macro Precision  Macro Recall  Macro F1  Weighted F1
+         CART    0.8222           0.6625        0.7547    0.6941       0.8261
+          SVM    0.8404           0.6702        0.7171    0.6904       0.8445
+          GAM    0.8491           0.6941        0.8813    0.7587       0.8562
+Random Forest    0.8529           0.7682        0.6462    0.6882       0.8498
+          MoE    0.8011           0.6743        0.6747    0.6703       0.8045
+     Stacking    0.8601           0.6914        0.8955    0.7555       0.8673
